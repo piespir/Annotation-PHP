@@ -7,9 +7,7 @@ abstract class Annotation {
      * @var ReflectionClass  
      */
     private $reflection;
-    
     protected $data = array();
-    
     protected $errors = array();
 
     /**
@@ -27,14 +25,11 @@ abstract class Annotation {
     protected function _getAnnotations() {
         $props = $this->reflection->getProperties();
         $data = array();
-        foreach ($props as $prop) {
-            $lines = explode("\n", $prop->getDocComment());
-            $count = count($lines);
-            for ($i = 0; $i < $count; $i++) {
-                if (strpos($lines[$i], '@')) {
-                    preg_match("/@(.+)/", $lines[$i], $string);
-                    $data[] = $string[1];
-                }
+        $count = count($props);
+        for ($i = 0; $i < $count; $i++) {
+            preg_match("/@(.+) (.+)\n/i", $props[$i]->getDocComment(), $string);
+            if (!empty($string)) {
+                $data[] = $string;
             }
         }
         return $data;
@@ -48,14 +43,11 @@ abstract class Annotation {
     protected function _getAnnotation($annot) {
         $props = $this->reflection->getProperties();
         $data = array();
-        foreach ($props as $prop) {
-            $lines = explode("\n", $prop->getDocComment());
-            $count = count($lines);
-            for ($i = 0; $i < $count; $i++) {
-                if (strpos($lines[$i], $annot)) {
-                    preg_match("/@(.+)/", $lines[$i], $string);
-                    $data[] = $string[1];
-                }
+        $count = count($props);
+        for ($i = 0; $i < $count; $i++) {
+            if (strpos($props[$i]->getDocComment(), $annot)) {
+                preg_match("/@(.+) (.+)\n/i", $props[$i]->getDocComment(), $string);
+                $data[] = $string;
             }
         }
         return $data;
@@ -73,7 +65,7 @@ abstract class Annotation {
         $count = count($lines);
         for ($i = 0; $i < $count; $i++) {
             if (strpos($lines[$i], 'Table')) {
-                preg_match("/@(.+)/", $lines[$i], $string);
+                preg_match("/@(.+) (.+)/", $lines[$i], $string);
                 $data[] = $string[1];
             }
         }
@@ -126,7 +118,7 @@ abstract class Annotation {
         $count = count($lines);
         $props = array();
         for ($i = 0; $i < $count; $i++) {
-            list($name, $desc) = explode(' ', $lines[$i]);
+            list($name, $desc) = explode(' ', $lines[$i][0]);
             $desc = str_replace(array('(', ')'), '', $desc);
             $prop = explode(',', $desc);
             $countp = count($prop);
@@ -138,14 +130,11 @@ abstract class Annotation {
         }
         return $props;
     }
-    
-    protected function _getPropertyByName($key)
-    {
+
+    protected function _getPropertyByName($key) {
         $props = $this->_getProperties();
-        foreach($props as $prop)
-        {
-            if($prop->get('name') == $key)
-            {
+        foreach ($props as $prop) {
+            if ($prop->get('name') == $key) {
                 return $prop;
             }
         }
@@ -158,12 +147,10 @@ abstract class Annotation {
      */
     protected function _getProperty($annot) {
         $lines = $this->_getAnnotation($annot);
-        $count = count($lines);
         $props = array();
-        for ($i = 0; $i < $count; $i++) {
-            list($name, $desc) = explode(' ', $lines[$i]);
-            $desc = str_replace(array('(', ')'), '', $desc);
-            $prop = explode(',', $desc);
+        $countl = count($lines);
+        for ($i = 0; $i < $countl; $i++) {
+            $prop = explode(',', str_replace(array('(', ')'), '', $lines[$i][2]));
             $countp = count($prop);
             $props[$i] = new AnnotationProperty();
             for ($j = 0; $j < $countp; $j++) {
@@ -171,7 +158,7 @@ abstract class Annotation {
                 $props[$i]->set($key, $value);
             }
         }
-        return count($props) == 1 ? $props[0] : $props;
+        return $props;
     }
 
     /**
@@ -182,27 +169,22 @@ abstract class Annotation {
 
         return $this->_getProperty('Column');
     }
-    
+
     public function __call($name, $arguments) {
-       $type = substr($name, 0,3);
-       if($type == 'set')
-       {
-           $property = substr($name, 3,  strlen($name));
-           if(property_exists($this, $property))
-           {
-               $typeprop = $this->_getPropertyByName($property);
-               $this->data[$property] = AnnotationType::filter($arguments[0], $typeprop->get('type') );                
-           }
-       }
-       if($type == 'get')
-       {
-           $property = substr($name, 3,  strlen($name));
-           if(property_exists($this, $property))
-           {
-               return isset($this->data[$property]) ? $this->data[$property] : null ;
-           }
-       }
+        $type = substr($name, 0, 3);
+        if ($type == 'set') {
+            $property = substr($name, 3, strlen($name));
+            if (property_exists($this, $property)) {
+                $typeprop = $this->_getPropertyByName($property);
+                $this->data[$property] = AnnotationType::filter($arguments[0], $typeprop->get('type'));
+            }
+        }
+        if ($type == 'get') {
+            $property = substr($name, 3, strlen($name));
+            if (property_exists($this, $property)) {
+                return isset($this->data[$property]) ? $this->data[$property] : null;
+            }
+        }
     }
-    
-        
+
 }
