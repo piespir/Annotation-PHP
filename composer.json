@@ -3,7 +3,7 @@
     "require": {
         "php": ">=5.3"
     },
-    "description": "Pacote do semente",
+    "description": "Pacote de annotation para o semente",
     "authors":[
     {
         "name": "Igor C. de Paula",
