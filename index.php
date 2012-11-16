@@ -7,9 +7,9 @@ function __autoload($class) {
 echo '<pre>';
 $start = microtime(true);
 $t = new Teste();
-print_r($t->getIdDesc());
+print_r($t->createTable());
 ;
-print_r( $t->getvar1());
+
 $fim = microtime(true);
 $tempo = $fim - $start;
 echo "<br/>finalizado em {$tempo}";

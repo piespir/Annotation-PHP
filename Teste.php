@@ -15,6 +15,10 @@ class Teste extends Annotation{
      * @Id (name=Id,type=integer,lenght=45)
      */
     private $Id;
+    /**
+     * @Id (name=cpf,type=integer,lenght=45)
+     */
+    private $cpf;
 
     /**
      * @Column (name=var3,type=text,lenght=11)

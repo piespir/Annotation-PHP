@@ -66,7 +66,7 @@ abstract class Annotation {
         for ($i = 0; $i < $count; $i++) {
             if (strpos($lines[$i], 'Table')) {
                 preg_match("/@(.+) (.+)/", $lines[$i], $string);
-                $data[] = $string[1];
+                $data[] = $string[2];
             }
         }
         return $data;
@@ -81,8 +81,7 @@ abstract class Annotation {
         $prop = array();
         $count = count($desc);
         for ($i = 0; $i < $count; $i++) {
-            $string = explode(' ', $desc[$i]);
-            $string = explode(',', str_replace(array('(', ')'), '', $string[1]));
+            $string = explode(',', str_replace(array('(', ')'), '', $desc[$i]));
             $counts = count($string);
             $prop[$i] = new AnnotationProperty();
             for ($j = 0; $j < $counts; $j++) {
@@ -113,7 +112,7 @@ abstract class Annotation {
      * Retorna propriedades das annotations pela AnnotationProperty
      * @return AnnotationProperty
      */
-    protected function _getProperties() {
+    public function _getProperties() {
         $lines = $this->_getAnnotations();
         $count = count($lines);
         $props = array();
@@ -123,6 +122,7 @@ abstract class Annotation {
             $prop = explode(',', $desc);
             $countp = count($prop);
             $props[$i] = new AnnotationProperty();
+              $props[$i]->set('tag', $name);
             for ($j = 0; $j < $countp; $j++) {
                 list($key, $value) = explode('=', $prop[$j]);
                 $props[$i]->set($key, $value);
@@ -131,10 +131,10 @@ abstract class Annotation {
         return $props;
     }
 
-    protected function _getPropertyByName($key) {
+    protected function _getPropertyByTag($key) {
         $props = $this->_getProperties();
         foreach ($props as $prop) {
-            if ($prop->get('name') == $key) {
+            if ($prop->get('tag') == '@'.$key) {
                 return $prop;
             }
         }
@@ -185,6 +185,32 @@ abstract class Annotation {
                 return isset($this->data[$property]) ? $this->data[$property] : null;
             }
         }
+    }
+
+    public function createTable() {
+        $props = $this->_getProperties();
+        $count = count($props);
+        $fields = array();
+        $primary = array();
+        $create = "CREATE TABLE IF NOT EXISTS ";
+        $create .= "{$this->_getTableData()->get('name')} (";
+        for($i=0;$i<$count;$i++)
+        {
+            $fields[$i] = "{$props[$i]->get('name')} {$props[$i]->get('type')}";
+            if($props[$i]->get('type'))
+            {
+                $fields[$i] .= "({$props[$i]->get('lenght')})";
+            }
+            if($props[$i]->get('tag') == '@Id')
+            {
+                $primary[$i] = $props[$i]->get('name');
+            }           
+        }
+        $create .= implode(',', $fields);
+        $primaryk = ', primary key('.implode(',',$primary).')';
+        $create .= $primaryk.')';
+        
+        return $create;
     }
 
 }
