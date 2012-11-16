@@ -3,12 +3,12 @@
     "require": {
         "php": ">=5.3"
     },
-     "description": "Pacote de annotation para o semente",
+    "description": "Pacote de annotation para o semente",
     "authors":[
-        {
-            "name": "Igor C. de Paula",
-            "email": "igordepaula@adminweb.com.br"
-        }
+    {
+        "name": "Igor C. de Paula",
+        "email": "igordepaula@adminweb.com.br"
+    }
     ],
     "license": "MIT",
     "autoload": {
@@ -17,4 +17,3 @@
         }
     }
 }
-
